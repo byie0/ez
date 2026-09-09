@@ -1,10 +1,13 @@
+#include <stdatomic.h>
 #include <stdio.h>
 // #ifndef Windows11
 #include "error/state.h"
 #include "io/dir.h"
+#include <direct.h>
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+
 
 #define MAX_CHARS 999
 #define DIR_NAME_TEST "y7894tu0jwgringrbiohut34968yu04tjorig"
@@ -72,8 +75,8 @@ ez_DirCount ez_dir_count_items(const char *dirName) {
 void ez_dir_count_items_recursive(const char *dirName,
                                   ez_DirCount *pTotalDirCount) {
 
-  printf("iteration has %d total subdirectories found\n",
-         pTotalDirCount->subdirectories);
+  // printf("iteration has %d total subdirectories found\n",
+  //        pTotalDirCount->subdirectories);
 
   if (strcmp(dirName, DIR_NAME_TEST) == 0) {
     atomic_store(&ez_errorGlobal, EZ_ERROR_FIND_FIRST_FILE_FAILED);
@@ -112,14 +115,14 @@ void ez_dir_count_items_recursive(const char *dirName,
 
     // Check if the item is a subdirectory
     if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-      printf("[DIR]  %s\n", pathBuffer);
+      // printf("[DIR]  %s\n", pathBuffer);
       res->items++;
       res->subdirectories++;
       // Recurse down into the subdirectory
       ez_dir_count_items_recursive(pathBuffer, res);
     } else {
       // It's a file
-      printf("[FILE] %s\n", pathBuffer);
+      // printf("[FILE] %s\n", pathBuffer);
       res->items++;
       res->files++;
     }
@@ -131,10 +134,7 @@ void ez_dir_count_items_recursive(const char *dirName,
 
 void ez_dir_get_items(const char *dirName, ez_DirItem **ppItems) {
   ez_DirCount dirCount = ez_dir_count_items(dirName);
-  *ppItems= (ez_DirItem * )malloc(
-      sizeof(ez_DirItem) * dirCount.items
-  );
-
+  *ppItems = (ez_DirItem *)malloc(sizeof(ez_DirItem) * dirCount.items);
 
   // help me
   ez_DirItem *res = *ppItems;
@@ -253,9 +253,7 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
       res[itemCount].name[strlen(pathBuffer)] = '\0';
       strcpy(res[itemCount].name, pathBuffer);
       itemCount++;
-
     }
-
 
   } while (FindNextFile(hFind, &findData)); // Move to the next item
   *offset = itemCount;
@@ -264,9 +262,9 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
   return;
 };
 
-
 // returns the item count
-ez_DirCount ez_dir_get_items_recursive(const char *dirName, ez_DirItem **pItems) {
+ez_DirCount ez_dir_get_items_recursive(const char *dirName,
+                                       ez_DirItem **pItems) {
   ez_DirCount dirCountRecursive = {};
   ez_dir_count_items_recursive(dirName, &dirCountRecursive);
 
@@ -276,6 +274,34 @@ ez_DirCount ez_dir_get_items_recursive(const char *dirName, ez_DirItem **pItems)
 
   ez_dir_i_get_items_recursive(dirName, *pItems, &offset);
   return dirCountRecursive;
+};
+
+int ez_dir_item_exists(const char *itemName) {
+  // recursively look through all files in the working environment to see if the
+  // file specified exists.
+  char cwd[1024];
+
+  if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    printf("current working directory: %s\n", cwd);
+    ez_DirItem *dirItemsRecursive = NULL;
+    ez_DirCount dirCountRecursive =
+        ez_dir_get_items_recursive(cwd, &dirItemsRecursive);
+
+    for (int i = 0; i < dirCountRecursive.items; i++) {
+      printf("Recursive Search yielded: \"%s\"\n", dirItemsRecursive[i].name);
+      if(strcmp(dirItemsRecursive[i].name, itemName)==0){
+          printf("Found required item! %s\n", itemName);
+          return 1;
+      }
+    }
+
+  }else{
+      atomic_store(&ez_errorGlobal, EZ_ERROR_WORKING_DIRECTORY_NOT_FOUND);
+      return -1; // failure
+  }
+
+  printf("Found no match for %s\n", itemName);
+  return 0; // looked through the whole tree and item doesnt exist
 };
 
 // #endif
