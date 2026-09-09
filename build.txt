@@ -1,0 +1,5 @@
+gcc src/main.c src/io/windows11.c src/io/linux.c src/error/state.c src/tests.c src/io/file.c -Iinclude -DWindows11 -o build/ez
+// requires error/state.c to exist
+
+define "Windows11" for Windows11 compilation
+define "RUN_TESTS" for testcase execution

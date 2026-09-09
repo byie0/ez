@@ -1,0 +1,281 @@
+#include <stdio.h>
+// #ifndef Windows11
+#include "error/state.h"
+#include "io/dir.h"
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+
+#define MAX_CHARS 999
+#define DIR_NAME_TEST "y7894tu0jwgringrbiohut34968yu04tjorig"
+
+// me when i steal code from stackoverflow
+ez_DirCount ez_dir_count_items(const char *dirName) {
+
+  if (strcmp(dirName, DIR_NAME_TEST) == 0) {
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FIND_FIRST_FILE_FAILED);
+  }
+
+  ez_DirCount res = {};
+
+  TCHAR pathBuffer[MAX_CHARS] = {};
+  WIN32_FIND_DATA findData;
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  snprintf(pathBuffer, MAX_CHARS, ("%s\\*"), dirName);
+  // printf("pathBuffer: %s", pathBuffer);
+
+  // Initialize the directory search
+  hFind = FindFirstFile(pathBuffer, &findData);
+
+  if (hFind == INVALID_HANDLE_VALUE) {
+    // Paths might be restricted by permissions
+    // printf("Access denied or path not found: %s\n", dirName);
+    res.items = -1;
+    res.files = -1;
+    res.subdirectories = -1;
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FILE_PERSMISSION_DENIED);
+
+    return res;
+  }
+  do {
+    // Skip the current (.) and parent (..) directory anchors to avoid infinite
+    // loops
+    if (strcmp(findData.cFileName, ".") == 0 ||
+        strcmp(findData.cFileName, "..") == 0) {
+      continue;
+    }
+
+    // Construct the full path of the current item
+    snprintf(pathBuffer, MAX_PATH, "%s\\%s", dirName, findData.cFileName);
+
+    // Check if the item is a subdirectory
+    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      // printf("[DIR]  %s\n", pathBuffer);
+      res.items++;
+      res.subdirectories++;
+      // Recurse down into the subdirectory
+      // WalkDirectory(pathBuffer);
+    } else {
+      // It's a file
+      // printf("[FILE] %s\n", pathBuffer);
+      res.items++;
+      res.files++;
+    }
+
+  } while (FindNextFile(hFind, &findData)); // Move to the next item
+
+  FindClose(hFind); // Always, Always, clean things up!
+  return res;
+};
+
+void ez_dir_count_items_recursive(const char *dirName,
+                                  ez_DirCount *pTotalDirCount) {
+
+  printf("iteration has %d total subdirectories found\n",
+         pTotalDirCount->subdirectories);
+
+  if (strcmp(dirName, DIR_NAME_TEST) == 0) {
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FIND_FIRST_FILE_FAILED);
+  }
+
+  ez_DirCount *res = pTotalDirCount;
+
+  TCHAR pathBuffer[MAX_CHARS] = {};
+  WIN32_FIND_DATA findData;
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  snprintf(pathBuffer, MAX_CHARS, ("%s\\*"), dirName);
+  // printf("pathBuffer: %s", pathBuffer);
+
+  // Initialize the directory search
+  hFind = FindFirstFile(pathBuffer, &findData);
+
+  if (hFind == INVALID_HANDLE_VALUE) {
+    // Paths might be restricted by permissions
+    // printf("Access denied or path not found: %s\n", dirName);
+
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FILE_PERSMISSION_DENIED);
+
+    return;
+  }
+  do {
+    // Skip the current (.) and parent (..) directory anchors to avoid infinite
+    // loops
+    if (strcmp(findData.cFileName, ".") == 0 ||
+        strcmp(findData.cFileName, "..") == 0) {
+      continue;
+    }
+
+    // Construct the full path of the current item
+    snprintf(pathBuffer, MAX_PATH, "%s\\%s", dirName, findData.cFileName);
+
+    // Check if the item is a subdirectory
+    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      printf("[DIR]  %s\n", pathBuffer);
+      res->items++;
+      res->subdirectories++;
+      // Recurse down into the subdirectory
+      ez_dir_count_items_recursive(pathBuffer, res);
+    } else {
+      // It's a file
+      printf("[FILE] %s\n", pathBuffer);
+      res->items++;
+      res->files++;
+    }
+
+  } while (FindNextFile(hFind, &findData)); // Move to the next item
+
+  FindClose(hFind); // Always, Always, clean things up!
+};
+
+void ez_dir_get_items(const char *dirName, ez_DirItem **ppItems) {
+  ez_DirCount dirCount = ez_dir_count_items(dirName);
+  *ppItems= (ez_DirItem * )malloc(
+      sizeof(ez_DirItem) * dirCount.items
+  );
+
+
+  // help me
+  ez_DirItem *res = *ppItems;
+
+  TCHAR pathBuffer[MAX_CHARS] = {};
+  WIN32_FIND_DATA findData;
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  snprintf(pathBuffer, MAX_CHARS, ("%s\\*"), dirName);
+  // printf("pathBuffer: %s", pathBuffer);
+
+  // Initialize the directory search
+  hFind = FindFirstFile(pathBuffer, &findData);
+
+  if (hFind == INVALID_HANDLE_VALUE) {
+    // Paths might be restricted by permissions
+    // printf("Access denied or path not found: %s\n", dirName);
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FILE_PERSMISSION_DENIED);
+    return;
+  }
+
+  size_t itemCount = 0;
+  do {
+    // Skip the current (.) and parent (..) directory anchors to avoid infinite
+    // loops
+    if (strcmp(findData.cFileName, ".") == 0 ||
+        strcmp(findData.cFileName, "..") == 0) {
+      continue;
+    }
+
+    // Construct the full path of the current item
+    snprintf(pathBuffer, MAX_PATH, "%s\\%s", dirName, findData.cFileName);
+
+    // Check if the item is a subdirectory
+    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      // printf("[DIR]  %s\n", pathBuffer);
+      //  omg i forgot to malloc the strings
+      res[itemCount].name = malloc(strlen(pathBuffer) * sizeof(char) + 1);
+      res[itemCount].name[strlen(pathBuffer)] =
+          '\0'; // not sure if this helps anything
+      strcpy(res[itemCount].name, pathBuffer);
+      // printf("res[itemCount].name: %s", res[itemCount].name);
+      // printf("successfully copied dir name \n");
+
+    } else {
+      // It's a file
+      // printf("[FILE] %s\n", pathBuffer);
+      res[itemCount].name = malloc(strlen(pathBuffer) * sizeof(char) + 1);
+      res[itemCount].name[strlen(pathBuffer)] = '\0';
+      strcpy(res[itemCount].name, pathBuffer);
+    }
+
+    itemCount++;
+
+  } while (FindNextFile(hFind, &findData)); // Move to the next item
+
+  FindClose(hFind); // Always, Always, clean things up!
+  return;
+};
+
+// internal
+void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
+                                  size_t *offset) {
+  ez_DirCount dirCount = ez_dir_count_items(dirName);
+
+  // help me
+  ez_DirItem *res = pItems;
+
+  TCHAR pathBuffer[MAX_CHARS] = {};
+  WIN32_FIND_DATA findData;
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  snprintf(pathBuffer, MAX_CHARS, ("%s\\*"), dirName);
+  // printf("pathBuffer: %s", pathBuffer);
+
+  // Initialize the directory search
+  hFind = FindFirstFile(pathBuffer, &findData);
+
+  if (hFind == INVALID_HANDLE_VALUE) {
+    // Paths might be restricted by permissions
+    // printf("Access denied or path not found: %s\n", dirName);
+    atomic_store(&ez_errorGlobal, EZ_ERROR_FILE_PERSMISSION_DENIED);
+    return;
+  }
+
+  size_t itemCount = *offset;
+  do {
+    // Skip the current (.) and parent (..) directory anchors to avoid infinite
+    // loops
+    if (strcmp(findData.cFileName, ".") == 0 ||
+        strcmp(findData.cFileName, "..") == 0) {
+      continue;
+    }
+
+    // Construct the full path of the current item
+    snprintf(pathBuffer, MAX_PATH, "%s\\%s", dirName, findData.cFileName);
+
+    // Check if the item is a subdirectory
+    if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      // printf("[DIR]  %s\n", pathBuffer);
+      //  omg i forgot to malloc the strings
+      res[itemCount].name = malloc(strlen(pathBuffer) * sizeof(char) + 1);
+      res[itemCount].name[strlen(pathBuffer)] =
+          '\0'; // not sure if this helps anything
+      strcpy(res[itemCount].name, pathBuffer);
+      itemCount++;
+
+      // printf("res[itemCount].name: %s", res[itemCount].name);
+      // printf("successfully copied dir name \n");
+      ez_dir_i_get_items_recursive(pathBuffer, pItems, &itemCount);
+
+    } else {
+      // It's a file
+      // printf("[FILE] %s\n", pathBuffer);
+      res[itemCount].name = malloc(strlen(pathBuffer) * sizeof(char) + 1);
+      res[itemCount].name[strlen(pathBuffer)] = '\0';
+      strcpy(res[itemCount].name, pathBuffer);
+      itemCount++;
+
+    }
+
+
+  } while (FindNextFile(hFind, &findData)); // Move to the next item
+  *offset = itemCount;
+
+  FindClose(hFind); // Always, Always, clean things up!
+  return;
+};
+
+
+// returns the item count
+ez_DirCount ez_dir_get_items_recursive(const char *dirName, ez_DirItem **pItems) {
+  ez_DirCount dirCountRecursive = {};
+  ez_dir_count_items_recursive(dirName, &dirCountRecursive);
+
+  // allocate enough space for all the items
+  *pItems = (ez_DirItem *)malloc(sizeof(ez_DirItem) * dirCountRecursive.items);
+  size_t offset = 0;
+
+  ez_dir_i_get_items_recursive(dirName, *pItems, &offset);
+  return dirCountRecursive;
+};
+
+// #endif
