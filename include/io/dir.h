@@ -30,3 +30,6 @@ ez_DirCount ez_dir_get_items_recursive(const char *dirName,
                                        ez_DirItem **pItems);
 
 int ez_dir_item_exists(const char *dirName);
+
+// strips cwd prefix
+int ez_dir_item_exists_strip(const char *itemName);

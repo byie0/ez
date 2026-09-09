@@ -8,7 +8,6 @@
 #include <string.h>
 #include <windows.h>
 
-
 #define MAX_CHARS 999
 #define DIR_NAME_TEST "y7894tu0jwgringrbiohut34968yu04tjorig"
 
@@ -282,25 +281,64 @@ int ez_dir_item_exists(const char *itemName) {
   char cwd[1024];
 
   if (getcwd(cwd, sizeof(cwd)) != NULL) {
-    printf("current working directory: %s\n", cwd);
+    // printf("current working directory: %s\n", cwd);
     ez_DirItem *dirItemsRecursive = NULL;
     ez_DirCount dirCountRecursive =
         ez_dir_get_items_recursive(cwd, &dirItemsRecursive);
 
     for (int i = 0; i < dirCountRecursive.items; i++) {
-      printf("Recursive Search yielded: \"%s\"\n", dirItemsRecursive[i].name);
-      if(strcmp(dirItemsRecursive[i].name, itemName)==0){
-          printf("Found required item! %s\n", itemName);
-          return 1;
+      // printf("Recursive Search yielded: \"%s\"\n",
+      // dirItemsRecursive[i].name);
+      if (strcmp(dirItemsRecursive[i].name, itemName) == 0) {
+        // printf("Found required item! %s\n", itemName);
+        return 1;
       }
     }
 
-  }else{
-      atomic_store(&ez_errorGlobal, EZ_ERROR_WORKING_DIRECTORY_NOT_FOUND);
-      return -1; // failure
+  } else {
+    atomic_store(&ez_errorGlobal, EZ_ERROR_WORKING_DIRECTORY_NOT_FOUND);
+    return -1; // failure
   }
 
-  printf("Found no match for %s\n", itemName);
+  // printf("Found no match for %s\n", itemName);
+  return 0; // looked through the whole tree and item doesnt exist
+};
+
+int ez_dir_item_exists_strip(const char *itemName) {
+  // recursively look through all files in the working environment to see if the
+  // file specified exists.
+  char cwd[1024];
+
+  if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    // printf("current working directory: %s\n", cwd);
+    ez_DirItem *dirItemsRecursive = NULL;
+    ez_DirCount dirCountRecursive =
+        ez_dir_get_items_recursive(cwd, &dirItemsRecursive);
+
+    for (int i = 0; i < dirCountRecursive.items; i++) {
+      size_t toStrip = strlen(cwd) + 1;
+      size_t originalNameLen = strlen(dirItemsRecursive[i].name);
+
+      char nameStripped[originalNameLen - toStrip + 1];
+
+      strncpy(nameStripped, dirItemsRecursive[i].name + toStrip,
+              originalNameLen - toStrip);
+      nameStripped[originalNameLen - toStrip] =
+          '\0'; // me when i forget to null-terminate
+
+      // printf("Recursive Search yielded: \"%s\"\n", nameStripped);
+      if (strcmp(nameStripped, itemName) == 0) {
+        // printf("Found required item! %s\n", itemName);
+        return 1;
+      }
+    }
+
+  } else {
+    atomic_store(&ez_errorGlobal, EZ_ERROR_WORKING_DIRECTORY_NOT_FOUND);
+    return -1; // failure
+  }
+
+  // printf("Found no match for %s\n", itemName);
   return 0; // looked through the whole tree and item doesnt exist
 };
 
