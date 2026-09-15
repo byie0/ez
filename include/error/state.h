@@ -11,7 +11,7 @@ typedef enum ez_ErrorCodes {
 #define ez_error_check()                                                       \
   switch (ez_errorGlobal) {                                                    \
   case EZ_ERROR_FIND_FIRST_FILE_FAILED: {                                      \
-    printf("Error finding the first file of the requested subdirectory");      \
+    SERROR("Error finding the first file of the requested subdirectory");      \
   }                                                                            \
   }
 

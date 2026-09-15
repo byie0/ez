@@ -4,10 +4,4 @@ gcc src/main.c src/io/windows11.c src/io/linux.c src/error/state.c src/tests.c s
 define "Windows11" for Windows11 compilation
 define "RUN_TESTS" for testcase execution
 
- ./build/ez.exe --include include --include build --source-file src\error\state.c --exclude-file src\io\linux.c --d Windows11 --source-file src\io\file.c --source-dir src --o build/ez
-
-currently crashes when only one define is defined. i wonder why. its neither gcc or creating the child that causes it.
-Fails strdup
-// todo:
-excludes
-defines
+./build/b.exe --include include --source-dir src --d LOGERROR --d DEBUG --d LOGTRACE --d LOGINFO --d LOGWARN --d LOGCOLORED --d LOGSUCCESS --d test2 --exclude-file src\io\linux.c --o build/a.exe

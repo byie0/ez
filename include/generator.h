@@ -35,10 +35,14 @@ typedef struct ez_CompilationConfig {
                   [EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX_NAME_LEN];
   size_t sourceFileCount;
 
+  // filex excluded
+  char excludedSourceFiles[EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX]
+                  [EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX_NAME_LEN];
+  size_t excludedSourceFileCount;
+
   char defines[EZ_COMPILATION_CONFIG_DEFINES_MAX]
               [EZ_COMPILATION_CONFIG_DEFINES_MAX_NAME_LEN];
   size_t definesCount;
-
 
 
   char sourceFolders[EZ_COMPILATION_CONFIG_SOURCE_FOLDERS_MAX]

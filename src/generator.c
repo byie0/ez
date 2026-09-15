@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "error/logs.h"
 
 //
 // Count how many characters are in the include folders
@@ -10,27 +11,56 @@
 //
 char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
 
-  printf("Using compiler: %s\n", cConfig->compiler);
+  size_t excludedSourceFilesVerified = 0;
+  for (int i = 0; i < cConfig->excludedSourceFileCount; i++) {
+    for (int j = 0; j < cConfig->sourceFileCount; j++) {
+      if (strcmp(cConfig->excludedSourceFiles[i], cConfig->sourceFiles[j]) ==
+          0) {
+        SINFO("Detected file: \"%s\" to be excluded. Removing from "
+              "compilation...\n",
+              cConfig->excludedSourceFiles[i]);
+        cConfig->sourceFiles[j][0] = '\0';
+        excludedSourceFilesVerified++;
+      }
+    }
+  }
+  SINFO("%llu source file(s) have been excluded.\n", excludedSourceFilesVerified);
+
+  size_t excludedIndicesPos = 0;
+  size_t excludedIndices[excludedSourceFilesVerified];
+  for (int i = 0; i < cConfig->excludedSourceFileCount; i++) {
+    for (int j = 0; j < cConfig->sourceFileCount; j++) {
+      if (strcmp(cConfig->excludedSourceFiles[i], cConfig->sourceFiles[j]) ==
+          0) {
+
+        excludedIndices[excludedIndicesPos] = j;
+        excludedIndicesPos++;
+      }
+    }
+  }
+
+  SINFO("Using compiler: %s\n", cConfig->compiler);
+
   size_t includeCharacterCount = 0;
   for (size_t i = 0; i < cConfig->includeCount; i++) {
     includeCharacterCount += strlen(cConfig->includeDirectories[i]);
   }
 
-  printf("Counted: %llu characters in the include directory names\n",
+  SDEBUG("Counted: %llu characters in the include directory names\n",
          includeCharacterCount);
 
   size_t sourceCharacterCount = 0;
   for (size_t i = 0; i < cConfig->sourceFileCount; i++) {
     sourceCharacterCount += strlen(cConfig->sourceFiles[i]);
   }
-  printf("Counted: %llu characters in the source file names\n",
+  SDEBUG("Counted: %llu characters in the source file names\n",
          sourceCharacterCount);
 
   size_t defineCharacterCount = 0;
   for (size_t i = 0; i < cConfig->definesCount; i++) {
     defineCharacterCount += strlen(cConfig->defines[i]);
   }
-  printf("Counted: %llu characters in the define names\n",
+  SDEBUG("Counted: %llu characters in the define names\n",
          defineCharacterCount);
 
   // assuming gcc for now
@@ -54,9 +84,11 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
       // spaces
       + 1 // gcc command
       + 1 // output command
-      + cConfig->includeCount + cConfig->sourceFileCount + cConfig->definesCount;
+      + cConfig->includeCount +
+      (cConfig->sourceFileCount - excludedSourceFilesVerified) +
+      cConfig->definesCount;
 
-  printf("totalCharCount: %llu\n", totalCharCount);
+  SDEBUG("totalCharCount: %llu\n", totalCharCount);
   char *compileCommandBuffer = malloc(totalCharCount);
   size_t bufferPos = 0;
 
@@ -68,8 +100,15 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   for (size_t j = 0; j < cConfig->sourceFileCount; j++) {
     strcpy(compileCommandBuffer + bufferPos, cConfig->sourceFiles[j]);
     bufferPos += strlen(cConfig->sourceFiles[j]);
-    compileCommandBuffer[bufferPos] = ' ';
-    bufferPos++;
+    if (cConfig->sourceFiles[j][0] == '\0') {
+
+      // this file is excluded
+    } else {
+
+      compileCommandBuffer[bufferPos] =
+          ' '; // if this file hasn't been excluded
+      bufferPos++;
+    }
   }
 
   for (size_t j = 0; j < cConfig->includeCount; j++) {
@@ -100,7 +139,7 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   compileCommandBuffer[bufferPos] = '\0'; // and we are done!
   bufferPos++;
 
-  printf("Generated compile command (%llu chars long): %s\n",
+  SDEBUG("Generated compile command (%llu chars long): %s\n",
          strlen(compileCommandBuffer), compileCommandBuffer);
 
   return compileCommandBuffer;

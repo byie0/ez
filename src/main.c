@@ -7,6 +7,7 @@ int main() {
 }
 #endif
 #ifndef RUN_TESTS
+#include "error/logs.h"
 #include "error/state.h"
 #include "generator.h"
 #include "io/cmd.h"
@@ -14,7 +15,6 @@ int main() {
 #include "io/file.h"
 #include <stdio.h>
 #include <string.h>
-
 
 int main(int argc, char *argv[]) {
   char logo[999] = {};
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
     // printf("Argument %d: %s\n", i, argv[i]);
     if (i != argc - 1) {
-      printf("argv[i]: %s\n argv[i+1]: %s\n", argv[i], argv[i + 1]);
+      SDEBUG("argv[i]: %s\n argv[i+1]: %s\n", argv[i], argv[i + 1]);
 
       // --------------------------------------------- Include directory
       if (strcmp("--include", argv[i]) == 0) {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
           cConfig.includeCount++;
 
         } else {
-          printf("Requested include directory: \"%s\" does not exist.",
+          SWARN("Requested include directory: \"%s\" does not exist.",
                  requestedInclude);
         };
       }
@@ -77,14 +77,13 @@ int main(int argc, char *argv[]) {
               // printf("Found subdirectory: %s\n", itemName);
               strcpy(cConfig.sourceFolders[cConfig.sourceFoldersCount],
                      itemName);
-              cConfig
-                  .sourceFolders[cConfig.sourceFileCount][strlen(itemName)] =
+              cConfig.sourceFolders[cConfig.sourceFileCount][strlen(itemName)] =
                   '\0';
               cConfig.sourceFoldersCount++;
             }
           }
         } else {
-          printf("Requested source directory: \"%s\" does not exist.",
+          SWARN("Requested source directory: \"%s\" does not exist.",
                  requestedDir);
         };
       } else if (strcmp("--source-file", argv[i]) == 0) {
@@ -93,14 +92,13 @@ int main(int argc, char *argv[]) {
         if (ez_dir_item_exists_strip(
                 requestedSource)) { // should check whether it is a file or a
                                     // dir.
-          strcpy(cConfig.sourceFiles[cConfig.sourceFileCount],
-                 requestedSource);
+          strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], requestedSource);
           cConfig
               .sourceFiles[cConfig.sourceFileCount][strlen(requestedSource)] =
               '\0';
           cConfig.sourceFileCount++;
         } else {
-          printf("Requested source file: \"%s\" does not exist.",
+          SWARN("Requested source file: \"%s\" does not exist.",
                  requestedSource);
         };
       }
@@ -112,9 +110,15 @@ int main(int argc, char *argv[]) {
         char excludedFile[strlen(argv[i + 1])];
         strcpy(excludedFile, argv[i + 1]);
         if (ez_dir_item_exists_strip(excludedFile)) {
-          printf("Excluding file: \"%s\"\n", excludedFile);
+          strcpy(cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount],
+                 excludedFile);
+          cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount]
+                                     [strlen(excludedFile)] = '\0';
+          cConfig.excludedSourceFileCount++;
+
+          SINFO("Excluding file: \"%s\"\n", excludedFile);
         } else {
-          printf("Excluded file \"%s\" may not exist.", excludedFile);
+          SWARN("Excluded file \"%s\" may not exist.\n", excludedFile);
         };
       }
 
@@ -126,7 +130,7 @@ int main(int argc, char *argv[]) {
         char toDefine[strlen(argv[i + 1]) + 1];
         strcpy(toDefine, argv[i + 1]);
         toDefine[strlen(argv[i + 1])] = '\0';
-        printf("Defining: \"%s\"\n", toDefine);
+        SINFO("Defining: \"%s\"", toDefine);
         strcpy(cConfig.defines[cConfig.definesCount], toDefine);
         cConfig.definesCount++;
       } else if (strcmp("--out", argv[i]) == 0 || strcmp("--o", argv[i]) == 0) {
@@ -139,7 +143,7 @@ int main(int argc, char *argv[]) {
 
         strcpy(cConfig.output, outputFileName);
         cConfig.output[strlen(argv[i + 1])] = '\0';
-        printf("Writing to: \"%s\"\n", cConfig.output);
+        SINFO("Writing to: \"%s\"\n", cConfig.output);
       } else {
         // bruh
       }
@@ -147,13 +151,13 @@ int main(int argc, char *argv[]) {
   }
 
   if (cConfig.includeCount == 1) {
-    printf("Include directory: ");
+    SINFO("Include directory: ");
   } else {
-    printf("Include directories: ");
+    SINFO("Include directories: ");
   }
   for (int i = 0; i < cConfig.includeCount; i++) {
 
-    printf("\"%s\"", cConfig.includeDirectories[i]);
+    SINFO("\"%s\"", cConfig.includeDirectories[i]);
     if (i != cConfig.includeCount - 1) {
       printf(", ");
     }
@@ -161,44 +165,50 @@ int main(int argc, char *argv[]) {
   printf("\n");
 
   if (cConfig.sourceFileCount == 1) {
-    printf("Source file: ");
+    SINFO("Source file: ");
   } else {
-    printf("Source files: ");
+    SINFO("Source files: ");
   }
   for (int i = 0; i < cConfig.sourceFileCount; i++) {
 
-    printf("\"%s\"", cConfig.sourceFiles[i]);
     if (i != cConfig.sourceFileCount - 1) {
-      printf(", ");
+        SINFO("\"%s\", ", cConfig.sourceFiles[i]);
+    }else{
+        SINFO("\"%s\"", cConfig.sourceFiles[i]);
+
     }
   }
   printf("\n");
 
   if (cConfig.sourceFoldersCount == 1) {
-    printf("Source folder: ");
+    SINFO("Source folder: ");
   } else {
-    printf("Source folders: ");
+    SINFO("Source folders: ");
   }
   for (int i = 0; i < cConfig.sourceFoldersCount; i++) {
 
-    printf("\"%s\"", cConfig.sourceFolders[i]);
     if (i != cConfig.sourceFoldersCount - 1) {
-      printf(", ");
+         SINFO("\"%s\", ", cConfig.sourceFolders[i]);
+    }else{
+        SINFO("\"%s\"", cConfig.sourceFolders[i]);
+
     }
   }
   printf("\n");
 
   char *cCommand = ez_generator_from_compile_config(&cConfig);
-  printf("Running: \"%s\"\n", cCommand);
+  SINFO("Running: \"%s\"\n", cCommand);
 
   int res = ez_spawn_child(cCommand);
 
   if (!res) {
-    printf("Compilation was successful!\nAll done now :3\n");
+    SSUCCESS("Compilation was successful! All done now :3\n");
+
+
     return res;
 
   } else {
-    printf("Unexpected exit code: %d\n", res);
+    SERROR("Unexpected exit code: %d\n", res);
     return res;
   }
   return 0;

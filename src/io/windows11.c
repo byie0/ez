@@ -3,6 +3,8 @@
 #include <tchar.h>
 // #ifndef Windows11
 #include "error/state.h"
+#include "error/logs.h"
+
 #include "io/dir.h"
 #include <direct.h>
 #include <stdlib.h>
@@ -26,14 +28,14 @@ ez_DirCount ez_dir_count_items(const char *dirName) {
   HANDLE hFind = INVALID_HANDLE_VALUE;
 
   snprintf(pathBuffer, MAX_CHARS, ("%s\\*"), dirName);
-  // printf("pathBuffer: %s", pathBuffer);
+  // STRACE("pathBuffer: %s", pathBuffer); // DO NOT ENABLE THIS
 
   // Initialize the directory search
   hFind = FindFirstFile(pathBuffer, &findData);
 
   if (hFind == INVALID_HANDLE_VALUE) {
     // Paths might be restricted by permissions
-    // printf("Access denied or path not found: %s\n", dirName);
+    SERROR("Access denied or path not found: %s\n", dirName);
     res.items = -1;
     res.files = -1;
     res.subdirectories = -1;
@@ -347,7 +349,7 @@ int ez_dir_item_exists_strip(const char *itemName) {
 };
 
 int ez_spawn_child(const char *command) {
-  printf("ez_spawn_child called!\n");
+  // printf("ez_spawn_child called!\n");
 
   STARTUPINFOA si = {0};
   PROCESS_INFORMATION pi = {0};
