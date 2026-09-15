@@ -10,37 +10,53 @@
 //
 char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
 
-  // printf("Using compiler: %s\n", cConfig->compiler);
+  printf("Using compiler: %s\n", cConfig->compiler);
   size_t includeCharacterCount = 0;
   for (size_t i = 0; i < cConfig->includeCount; i++) {
     includeCharacterCount += strlen(cConfig->includeDirectories[i]);
   }
 
-  // printf("Counted: %llu characters in the include directory names\n",
-  //        includeCharacterCount);
+  printf("Counted: %llu characters in the include directory names\n",
+         includeCharacterCount);
 
   size_t sourceCharacterCount = 0;
-  for (size_t i = 0; i < cConfig->sourceFilesCount; i++) {
+  for (size_t i = 0; i < cConfig->sourceFileCount; i++) {
     sourceCharacterCount += strlen(cConfig->sourceFiles[i]);
   }
+  printf("Counted: %llu characters in the source file names\n",
+         sourceCharacterCount);
 
-  // printf("Counted: %llu characters in the source file names\n",
-  //        sourceCharacterCount);
+  size_t defineCharacterCount = 0;
+  for (size_t i = 0; i < cConfig->definesCount; i++) {
+    defineCharacterCount += strlen(cConfig->defines[i]);
+  }
+  printf("Counted: %llu characters in the define names\n",
+         defineCharacterCount);
 
   // assuming gcc for now
   char gccCommand[] = "gcc";
   char gccIncludeFlag[] = "-I";
-  char gccOutputFlag[] = "-o";
-  size_t totalCharCount = strlen(gccCommand) +
-                          (sourceCharacterCount +       // Source file names
-                           cConfig->sourceFilesCount) + // spaces between them
-                          +(strlen(gccIncludeFlag) *    // include prefix
-                            cConfig->includeCount)      // * include directories
-                          + cConfig->includeCount       // spaces between them
-                          + strlen(gccOutputFlag)       // self-explanatory
-                          + strlen(cConfig->output);
+  char gccDefineFlag[] = "-D";
 
-  // printf("totalCharCount: %llu\n", totalCharCount);
+  char gccOutputFlag[] = "-o";
+  size_t totalCharCount =
+      // Variable-length
+      sourceCharacterCount + defineCharacterCount + includeCharacterCount +
+      strlen(cConfig->output)
+      // constant
+      + strlen(gccCommand) +
+      strlen(gccOutputFlag)
+
+      // prefixes (variable length)
+      + (strlen(gccIncludeFlag) * cConfig->includeCount) +
+      (strlen(gccDefineFlag) * cConfig->definesCount)
+
+      // spaces
+      + 1 // gcc command
+      + 1 // output command
+      + cConfig->includeCount + cConfig->sourceFileCount + cConfig->definesCount;
+
+  printf("totalCharCount: %llu\n", totalCharCount);
   char *compileCommandBuffer = malloc(totalCharCount);
   size_t bufferPos = 0;
 
@@ -49,7 +65,7 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   compileCommandBuffer[bufferPos] = ' ';
   bufferPos++;
 
-  for (size_t j = 0; j < cConfig->sourceFilesCount; j++) {
+  for (size_t j = 0; j < cConfig->sourceFileCount; j++) {
     strcpy(compileCommandBuffer + bufferPos, cConfig->sourceFiles[j]);
     bufferPos += strlen(cConfig->sourceFiles[j]);
     compileCommandBuffer[bufferPos] = ' ';
@@ -65,6 +81,15 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
     bufferPos++;
   }
 
+  for (size_t j = 0; j < cConfig->definesCount; j++) {
+    strcpy(compileCommandBuffer + bufferPos, gccDefineFlag);
+    bufferPos += strlen(gccDefineFlag);
+    strcpy(compileCommandBuffer + bufferPos, cConfig->defines[j]);
+    bufferPos += strlen(cConfig->defines[j]);
+    compileCommandBuffer[bufferPos] = ' ';
+    bufferPos++;
+  }
+
   strcpy(compileCommandBuffer + bufferPos, gccOutputFlag);
   bufferPos += strlen(gccOutputFlag);
   compileCommandBuffer[bufferPos] = ' ';
@@ -75,9 +100,8 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   compileCommandBuffer[bufferPos] = '\0'; // and we are done!
   bufferPos++;
 
-  // printf("Generated compile command (%llu chars long): %s\n",
-  //        strlen(compileCommandBuffer), compileCommandBuffer);
+  printf("Generated compile command (%llu chars long): %s\n",
+         strlen(compileCommandBuffer), compileCommandBuffer);
 
   return compileCommandBuffer;
-
 };

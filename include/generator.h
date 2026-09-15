@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-
 // compiler
 #define EZ_COMPILATION_CONFIG_COMPILER_MAX_NAME_LEN 20
 
@@ -15,6 +14,10 @@
 // source folder
 #define EZ_COMPILATION_CONFIG_SOURCE_FOLDERS_MAX 20
 #define EZ_COMPILATION_CONFIG_SOURCE_FOLDERS_MAX_NAME_LEN 40
+
+// defines
+#define EZ_COMPILATION_CONFIG_DEFINES_MAX 20
+#define EZ_COMPILATION_CONFIG_DEFINES_MAX_NAME_LEN 40
 
 // output
 #define EZ_COMPILATION_CONFIG_OUTPUT_FILE_MAX_NAME_LEN 40
@@ -30,9 +33,13 @@ typedef struct ez_CompilationConfig {
   // unique, specified by the user ()
   char sourceFiles[EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX]
                   [EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX_NAME_LEN];
-  size_t sourceFilesCount;
+  size_t sourceFileCount;
 
-  char outputFile[EZ_COMPILATION_CONFIG_OUTPUT_FILE_MAX_NAME_LEN];
+  char defines[EZ_COMPILATION_CONFIG_DEFINES_MAX]
+              [EZ_COMPILATION_CONFIG_DEFINES_MAX_NAME_LEN];
+  size_t definesCount;
+
+
 
   char sourceFolders[EZ_COMPILATION_CONFIG_SOURCE_FOLDERS_MAX]
                     [EZ_COMPILATION_CONFIG_SOURCE_FOLDERS_MAX_NAME_LEN];

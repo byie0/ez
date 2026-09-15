@@ -7,13 +7,14 @@ int main() {
 }
 #endif
 #ifndef RUN_TESTS
-
 #include "error/state.h"
 #include "generator.h"
+#include "io/cmd.h"
 #include "io/dir.h"
 #include "io/file.h"
 #include <stdio.h>
 #include <string.h>
+
 
 int main(int argc, char *argv[]) {
   char logo[999] = {};
@@ -25,7 +26,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
     // printf("Argument %d: %s\n", i, argv[i]);
     if (i != argc - 1) {
-      // printf("argv[i]: %s\n argv[i+1]: %s\n", argv[i], argv[i + 1]);
+      printf("argv[i]: %s\n argv[i+1]: %s\n", argv[i], argv[i + 1]);
 
       // --------------------------------------------- Include directory
       if (strcmp("--include", argv[i]) == 0) {
@@ -66,10 +67,10 @@ int main(int argc, char *argv[]) {
             itemName[strlen(dirItemsRecursive[item].name)] = '\0';
             if (dirItemsRecursive[item].type == EZ_DIR_ITEM_TYPE_FILE) {
               // printf("Found source file: %s\n", itemName);
-              strcpy(cConfig.sourceFiles[cConfig.sourceFilesCount], itemName);
-              cConfig.sourceFiles[cConfig.sourceFilesCount][strlen(itemName)] =
+              strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], itemName);
+              cConfig.sourceFiles[cConfig.sourceFileCount][strlen(itemName)] =
                   '\0';
-              cConfig.sourceFilesCount++;
+              cConfig.sourceFileCount++;
 
             } else if (dirItemsRecursive[item].type ==
                        EZ_DIR_ITEM_TYPE_SUBDIRECTORY) {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
               strcpy(cConfig.sourceFolders[cConfig.sourceFoldersCount],
                      itemName);
               cConfig
-                  .sourceFolders[cConfig.sourceFilesCount][strlen(itemName)] =
+                  .sourceFolders[cConfig.sourceFileCount][strlen(itemName)] =
                   '\0';
               cConfig.sourceFoldersCount++;
             }
@@ -92,12 +93,12 @@ int main(int argc, char *argv[]) {
         if (ez_dir_item_exists_strip(
                 requestedSource)) { // should check whether it is a file or a
                                     // dir.
-          strcpy(cConfig.sourceFiles[cConfig.sourceFilesCount],
+          strcpy(cConfig.sourceFiles[cConfig.sourceFileCount],
                  requestedSource);
           cConfig
-              .sourceFiles[cConfig.sourceFilesCount][strlen(requestedSource)] =
+              .sourceFiles[cConfig.sourceFileCount][strlen(requestedSource)] =
               '\0';
-          cConfig.sourceFilesCount++;
+          cConfig.sourceFileCount++;
         } else {
           printf("Requested source file: \"%s\" does not exist.",
                  requestedSource);
@@ -122,9 +123,12 @@ int main(int argc, char *argv[]) {
       //
       else if (strcmp("--define", argv[i]) == 0 ||
                strcmp("--d", argv[i]) == 0) {
-        char toDefine[strlen(argv[i + 1])];
+        char toDefine[strlen(argv[i + 1]) + 1];
         strcpy(toDefine, argv[i + 1]);
+        toDefine[strlen(argv[i + 1])] = '\0';
         printf("Defining: \"%s\"\n", toDefine);
+        strcpy(cConfig.defines[cConfig.definesCount], toDefine);
+        cConfig.definesCount++;
       } else if (strcmp("--out", argv[i]) == 0 || strcmp("--o", argv[i]) == 0) {
         // printf("OUTPUT\n");
 
@@ -137,7 +141,7 @@ int main(int argc, char *argv[]) {
         cConfig.output[strlen(argv[i + 1])] = '\0';
         printf("Writing to: \"%s\"\n", cConfig.output);
       } else {
-        // i++;
+        // bruh
       }
     }
   }
@@ -156,15 +160,15 @@ int main(int argc, char *argv[]) {
   }
   printf("\n");
 
-  if (cConfig.sourceFilesCount == 1) {
+  if (cConfig.sourceFileCount == 1) {
     printf("Source file: ");
   } else {
     printf("Source files: ");
   }
-  for (int i = 0; i < cConfig.sourceFilesCount; i++) {
+  for (int i = 0; i < cConfig.sourceFileCount; i++) {
 
     printf("\"%s\"", cConfig.sourceFiles[i]);
-    if (i != cConfig.sourceFilesCount - 1) {
+    if (i != cConfig.sourceFileCount - 1) {
       printf(", ");
     }
   }
@@ -185,16 +189,18 @@ int main(int argc, char *argv[]) {
   printf("\n");
 
   char *cCommand = ez_generator_from_compile_config(&cConfig);
-  printf("Compile command: %s\n", cCommand);
+  printf("Running: \"%s\"\n", cCommand);
 
-  printf("Running...\n");
-  int res = system(cCommand);
+  int res = ez_spawn_child(cCommand);
+
   if (!res) {
     printf("Compilation was successful!\nAll done now :3\n");
+    return res;
+
   } else {
     printf("Unexpected exit code: %d\n", res);
+    return res;
   }
-
   return 0;
 }
 #endif

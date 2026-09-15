@@ -1,5 +1,6 @@
 #include <stdatomic.h>
 #include <stdio.h>
+#include <tchar.h>
 // #ifndef Windows11
 #include "error/state.h"
 #include "io/dir.h"
@@ -255,7 +256,6 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
       res[itemCount].type = EZ_DIR_ITEM_TYPE_FILE;
       strcpy(res[itemCount].name, pathBuffer);
       itemCount++;
-
     }
 
   } while (FindNextFile(hFind, &findData)); // Move to the next item
@@ -344,6 +344,54 @@ int ez_dir_item_exists_strip(const char *itemName) {
 
   // printf("Found no match for %s\n", itemName);
   return 0; // looked through the whole tree and item doesnt exist
+};
+
+int ez_spawn_child(const char *command) {
+  printf("ez_spawn_child called!\n");
+
+  STARTUPINFOA si = {0};
+  PROCESS_INFORMATION pi = {0};
+
+  si.cb = sizeof(si);
+
+  // CreateProcess may modify this buffer,
+  // so it must be writable.
+  // printf("1\n");
+
+  char *cmd = strdup(command);
+
+  // printf("2\n");
+  if (!cmd) {
+    return -1;
+  }
+
+  BOOL ok = CreateProcessA(NULL,  // application name
+                           cmd,   // command line
+                           NULL,  // process security
+                           NULL,  // thread security
+                           FALSE, // inherit handles
+                           0,     // creation flags
+                           NULL,  // environment
+                           NULL,  // working directory
+                           &si, &pi);
+
+  free(cmd);
+
+  if (!ok) {
+    fprintf(stderr, "CreateProcess failed: %lu\n", GetLastError());
+    return -1;
+  }
+
+  // Wait for GCC to finish.
+  WaitForSingleObject(pi.hProcess, INFINITE);
+
+  DWORD exit_code;
+  GetExitCodeProcess(pi.hProcess, &exit_code);
+
+  CloseHandle(pi.hThread);
+  CloseHandle(pi.hProcess);
+
+  return (int)exit_code;
 };
 
 // #endif

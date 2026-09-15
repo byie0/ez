@@ -6,7 +6,8 @@ define "RUN_TESTS" for testcase execution
 
  ./build/ez.exe --include include --include build --source-file src\error\state.c --exclude-file src\io\linux.c --d Windows11 --source-file src\io\file.c --source-dir src --o build/ez
 
-
+currently crashes when only one define is defined. i wonder why. its neither gcc or creating the child that causes it.
+Fails strdup
 // todo:
 excludes
 defines
