@@ -187,8 +187,13 @@ int main(int argc, char *argv[]) {
   char *cCommand = ez_generator_from_compile_config(&cConfig);
   printf("Compile command: %s\n", cCommand);
 
-  printf(" COMPILING...\n");
-  system(cCommand);
+  printf("Running...\n");
+  int res = system(cCommand);
+  if (!res) {
+    printf("Compilation was successful!\nAll done now :3\n");
+  } else {
+    printf("Unexpected exit code: %d\n", res);
+  }
 
   return 0;
 }
