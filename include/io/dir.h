@@ -7,8 +7,8 @@ typedef struct ez_DirCount {
 } ez_DirCount;
 
 typedef enum ez_DirItemType {
-  DIR_ITEM_TYPE_FILE,
-  DIR_ITEM_TYPE_SUBDIRECTORY
+  EZ_DIR_ITEM_TYPE_FILE,
+  EZ_DIR_ITEM_TYPE_SUBDIRECTORY
 } ez_DirItemType;
 
 typedef struct ez_DirItem {

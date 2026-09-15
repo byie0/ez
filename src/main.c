@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #ifdef RUN_TESTS
 #include "tests.h"
 int main() {
@@ -8,43 +9,23 @@ int main() {
 #ifndef RUN_TESTS
 
 #include "error/state.h"
+#include "generator.h"
 #include "io/dir.h"
 #include "io/file.h"
 #include <stdio.h>
 #include <string.h>
-
-// includes
-#define EZ_COMPILATION_CONFIG_INCLUDE_DIRECTORIES_MAX 10
-#define EZ_COMPILATION_CONFIG_INCLUDE_DIRECTORIES_MAX_NAME_LEN 40
-// source files
-#define EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX 10
-#define EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX_NAME_LEN 40
-
-typedef struct ez_CompilationConfig {
-  char includeDirectories
-      [EZ_COMPILATION_CONFIG_INCLUDE_DIRECTORIES_MAX]
-      [EZ_COMPILATION_CONFIG_INCLUDE_DIRECTORIES_MAX_NAME_LEN];
-  size_t includeCount;
-
-  // unique, specified by the user ()
-  char sourceFiles[EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX]
-                  [EZ_COMPILATION_CONFIG_SOURCE_FILE_MAX_NAME_LEN];
-  size_t sourceFilesCount;
-
-  
-
-} ez_CompilationConfig;
 
 int main(int argc, char *argv[]) {
   char logo[999] = {};
   ez_file_to_string("assets/logo.txt", logo);
   printf("%s", logo);
 
-  ez_CompilationConfig cConfig = {};
+  ez_CompilationConfig cConfig = {.compiler = "gcc"};
 
   for (int i = 0; i < argc; i++) {
     // printf("Argument %d: %s\n", i, argv[i]);
     if (i != argc - 1) {
+      // printf("argv[i]: %s\n argv[i+1]: %s\n", argv[i], argv[i + 1]);
 
       // --------------------------------------------- Include directory
       if (strcmp("--include", argv[i]) == 0) {
@@ -58,18 +39,59 @@ int main(int argc, char *argv[]) {
                                     [strlen(requestedInclude)] = '\0';
 
           cConfig.includeCount++;
+
         } else {
           printf("Requested include directory: \"%s\" does not exist.",
                  requestedInclude);
         };
       }
-      // --------------------------------------------- Include directory
+      // --------------------------------------------- Sources
       //
-      // recursive (everything in the folder)
-      else if (strcmp("--source-file", argv[i]) == 0) {
+      else if (strcmp("--source-dir", argv[i]) == 0) {
+        char requestedDir[strlen(argv[i + 1])];
+        strcpy(requestedDir, argv[i + 1]);
+        if (ez_dir_item_exists_strip(
+                requestedDir)) { // should check whether it is a file or a dir.
+          // so the source does exist. Now we recursively
+          ez_DirItem *dirItemsRecursive = NULL;
+          ez_DirCount dirCountRecursive =
+              ez_dir_get_items_recursive(requestedDir, &dirItemsRecursive);
+
+          // printf("Found %d total items in this source directory.\n",
+          //        dirCountRecursive.items);
+          for (int item = 0; item < dirCountRecursive.items; item++) {
+            char itemName[strlen(dirItemsRecursive[item].name) +
+                          1]; // i mustnt forget the null terminator!
+            strcpy(itemName, dirItemsRecursive[item].name);
+            itemName[strlen(dirItemsRecursive[item].name)] = '\0';
+            if (dirItemsRecursive[item].type == EZ_DIR_ITEM_TYPE_FILE) {
+              // printf("Found source file: %s\n", itemName);
+              strcpy(cConfig.sourceFiles[cConfig.sourceFilesCount], itemName);
+              cConfig.sourceFiles[cConfig.sourceFilesCount][strlen(itemName)] =
+                  '\0';
+              cConfig.sourceFilesCount++;
+
+            } else if (dirItemsRecursive[item].type ==
+                       EZ_DIR_ITEM_TYPE_SUBDIRECTORY) {
+              // printf("Found subdirectory: %s\n", itemName);
+              strcpy(cConfig.sourceFolders[cConfig.sourceFoldersCount],
+                     itemName);
+              cConfig
+                  .sourceFolders[cConfig.sourceFilesCount][strlen(itemName)] =
+                  '\0';
+              cConfig.sourceFoldersCount++;
+            }
+          }
+        } else {
+          printf("Requested source directory: \"%s\" does not exist.",
+                 requestedDir);
+        };
+      } else if (strcmp("--source-file", argv[i]) == 0) {
         char requestedSource[strlen(argv[i + 1])];
         strcpy(requestedSource, argv[i + 1]);
-        if (ez_dir_item_exists_strip(requestedSource)) { // should check whether it is a file or a dir.
+        if (ez_dir_item_exists_strip(
+                requestedSource)) { // should check whether it is a file or a
+                                    // dir.
           strcpy(cConfig.sourceFiles[cConfig.sourceFilesCount],
                  requestedSource);
           cConfig
@@ -77,7 +99,7 @@ int main(int argc, char *argv[]) {
               '\0';
           cConfig.sourceFilesCount++;
         } else {
-          printf("Requested source directory: \"%s\" does not exist.",
+          printf("Requested source file: \"%s\" does not exist.",
                  requestedSource);
         };
       }
@@ -103,6 +125,19 @@ int main(int argc, char *argv[]) {
         char toDefine[strlen(argv[i + 1])];
         strcpy(toDefine, argv[i + 1]);
         printf("Defining: \"%s\"\n", toDefine);
+      } else if (strcmp("--out", argv[i]) == 0 || strcmp("--o", argv[i]) == 0) {
+        // printf("OUTPUT\n");
+
+        char outputFileName[strlen(argv[i + 1])];
+        strcpy(outputFileName, argv[i + 1]);
+        // printf("outputFileName: %s\n", outputFileName);
+        // printf("Before copying: \"%s\"\n", cConfig.output);
+
+        strcpy(cConfig.output, outputFileName);
+        cConfig.output[strlen(argv[i + 1])] = '\0';
+        printf("Writing to: \"%s\"\n", cConfig.output);
+      } else {
+        // i++;
       }
     }
   }
@@ -134,6 +169,26 @@ int main(int argc, char *argv[]) {
     }
   }
   printf("\n");
+
+  if (cConfig.sourceFoldersCount == 1) {
+    printf("Source folder: ");
+  } else {
+    printf("Source folders: ");
+  }
+  for (int i = 0; i < cConfig.sourceFoldersCount; i++) {
+
+    printf("\"%s\"", cConfig.sourceFolders[i]);
+    if (i != cConfig.sourceFoldersCount - 1) {
+      printf(", ");
+    }
+  }
+  printf("\n");
+
+  char *cCommand = ez_generator_from_compile_config(&cConfig);
+  printf("Compile command: %s\n", cCommand);
+
+  printf(" COMPILING...\n");
+  system(cCommand);
 
   return 0;
 }

@@ -4,4 +4,9 @@ gcc src/main.c src/io/windows11.c src/io/linux.c src/error/state.c src/tests.c s
 define "Windows11" for Windows11 compilation
 define "RUN_TESTS" for testcase execution
 
- ./build/ez.exe --include include --source-all src --exclude-file src\io\linux.c
+ ./build/ez.exe --include include --include build --source-file src\error\state.c --exclude-file src\io\linux.c --d Windows11 --source-file src\io\file.c --source-dir src --o build/ez
+
+
+// todo:
+excludes
+defines

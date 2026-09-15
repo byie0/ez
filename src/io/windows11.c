@@ -239,6 +239,8 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
       res[itemCount].name[strlen(pathBuffer)] =
           '\0'; // not sure if this helps anything
       strcpy(res[itemCount].name, pathBuffer);
+      res[itemCount].type = EZ_DIR_ITEM_TYPE_SUBDIRECTORY;
+
       itemCount++;
 
       // printf("res[itemCount].name: %s", res[itemCount].name);
@@ -250,8 +252,10 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
       // printf("[FILE] %s\n", pathBuffer);
       res[itemCount].name = malloc(strlen(pathBuffer) * sizeof(char) + 1);
       res[itemCount].name[strlen(pathBuffer)] = '\0';
+      res[itemCount].type = EZ_DIR_ITEM_TYPE_FILE;
       strcpy(res[itemCount].name, pathBuffer);
       itemCount++;
+
     }
 
   } while (FindNextFile(hFind, &findData)); // Move to the next item
