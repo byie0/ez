@@ -54,3 +54,5 @@ typedef struct ez_CompilationConfig {
 } ez_CompilationConfig;
 
 char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig);
+
+char * ez_generator_compile_commands(ez_CompilationConfig *cConfig);

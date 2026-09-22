@@ -1,0 +1,12 @@
+[
+  {
+    "directory": "/home/user/project/build",
+    "command": "/usr/bin/clang++ -Iinclude -DDEBUG -std=c++17 -c ../src/foo.cpp -o foo.o",
+    "file": "/home/user/project/src/foo.cpp"
+  },
+  {
+    "directory": "/home/user/project/build",
+    "arguments": ["/usr/bin/clang++", "-Iinclude", "-std=c++17", "-c", "../src/bar.cpp", "-o", "bar.o"],
+    "file": "/home/user/project/src/bar.cpp"
+  }
+]

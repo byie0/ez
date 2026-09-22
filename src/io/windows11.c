@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <tchar.h>
 // #ifndef Windows11
-#include "error/state.h"
 #include "error/logs.h"
+#include "error/state.h"
 
 #include "io/dir.h"
 #include <direct.h>
@@ -13,6 +13,25 @@
 
 #define MAX_CHARS 999
 #define DIR_NAME_TEST "y7894tu0jwgringrbiohut34968yu04tjorig"
+
+char *ez_dir_get_working_directory() {
+  const size_t buffer_size = 1024;
+  char *cwd = malloc(buffer_size);
+
+  if (getcwd(cwd, buffer_size) != NULL) {
+    SDEBUG("current working directory: %s\n", cwd);
+    //
+    for (int i = 0; cwd[i]; i++) {
+      if (cwd[i] == '\\') {
+        cwd[i] = '/';
+      }
+    }
+  } else {
+    SWARN("Failed to get current working directory!");
+    strcpy(cwd, ".");
+  }
+  return cwd;
+};
 
 // me when i steal code from stackoverflow
 ez_DirCount ez_dir_count_items(const char *dirName) {
@@ -44,8 +63,8 @@ ez_DirCount ez_dir_count_items(const char *dirName) {
     return res;
   }
   do {
-    // Skip the current (.) and parent (..) directory anchors to avoid infinite
-    // loops
+    // Skip the current (.) and parent (..) directory anchors to avoid
+    // infinite loops
     if (strcmp(findData.cFileName, ".") == 0 ||
         strcmp(findData.cFileName, "..") == 0) {
       continue;
@@ -105,8 +124,8 @@ void ez_dir_count_items_recursive(const char *dirName,
     return;
   }
   do {
-    // Skip the current (.) and parent (..) directory anchors to avoid infinite
-    // loops
+    // Skip the current (.) and parent (..) directory anchors to avoid
+    // infinite loops
     if (strcmp(findData.cFileName, ".") == 0 ||
         strcmp(findData.cFileName, "..") == 0) {
       continue;
@@ -160,8 +179,8 @@ void ez_dir_get_items(const char *dirName, ez_DirItem **ppItems) {
 
   size_t itemCount = 0;
   do {
-    // Skip the current (.) and parent (..) directory anchors to avoid infinite
-    // loops
+    // Skip the current (.) and parent (..) directory anchors to avoid
+    // infinite loops
     if (strcmp(findData.cFileName, ".") == 0 ||
         strcmp(findData.cFileName, "..") == 0) {
       continue;
@@ -224,8 +243,8 @@ void ez_dir_i_get_items_recursive(const char *dirName, ez_DirItem *pItems,
 
   size_t itemCount = *offset;
   do {
-    // Skip the current (.) and parent (..) directory anchors to avoid infinite
-    // loops
+    // Skip the current (.) and parent (..) directory anchors to avoid
+    // infinite loops
     if (strcmp(findData.cFileName, ".") == 0 ||
         strcmp(findData.cFileName, "..") == 0) {
       continue;
@@ -282,8 +301,8 @@ ez_DirCount ez_dir_get_items_recursive(const char *dirName,
 };
 
 int ez_dir_item_exists(const char *itemName) {
-  // recursively look through all files in the working environment to see if the
-  // file specified exists.
+  // recursively look through all files in the working environment to see if
+  // the file specified exists.
   char cwd[1024];
 
   if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -311,8 +330,8 @@ int ez_dir_item_exists(const char *itemName) {
 };
 
 int ez_dir_item_exists_strip(const char *itemName) {
-  // recursively look through all files in the working environment to see if the
-  // file specified exists.
+  // recursively look through all files in the working environment to see if
+  // the file specified exists.
   char cwd[1024];
 
   if (getcwd(cwd, sizeof(cwd)) != NULL) {

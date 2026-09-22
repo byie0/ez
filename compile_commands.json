@@ -1,0 +1,32 @@
+[
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/error/state.c",
+    "file": "src/error/state.c"
+  },
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/generator.c",
+    "file": "src/generator.c"
+  },
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/io/file.c",
+    "file": "src/io/file.c"
+  },
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/io/windows11.c",
+    "file": "src/io/windows11.c"
+  },
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/main.c",
+    "file": "src/main.c"
+  },
+  {
+    "directory": "C:/dev/ez",
+    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -c src/tests.c",
+    "file": "src/tests.c"
+  }
+]

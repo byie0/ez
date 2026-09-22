@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
         } else {
           SWARN("Requested include directory: \"%s\" does not exist.",
-                 requestedInclude);
+                requestedInclude);
         };
       }
       // --------------------------------------------- Sources
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
           }
         } else {
           SWARN("Requested source directory: \"%s\" does not exist.",
-                 requestedDir);
+                requestedDir);
         };
       } else if (strcmp("--source-file", argv[i]) == 0) {
         char requestedSource[strlen(argv[i + 1])];
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
           cConfig.sourceFileCount++;
         } else {
           SWARN("Requested source file: \"%s\" does not exist.",
-                 requestedSource);
+                requestedSource);
         };
       }
       // -------------------------------------------- Exclude
@@ -172,10 +172,9 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < cConfig.sourceFileCount; i++) {
 
     if (i != cConfig.sourceFileCount - 1) {
-        SINFO("\"%s\", ", cConfig.sourceFiles[i]);
-    }else{
-        SINFO("\"%s\"", cConfig.sourceFiles[i]);
-
+      SINFO("\"%s\", ", cConfig.sourceFiles[i]);
+    } else {
+      SINFO("\"%s\"", cConfig.sourceFiles[i]);
     }
   }
   printf("\n");
@@ -188,10 +187,9 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < cConfig.sourceFoldersCount; i++) {
 
     if (i != cConfig.sourceFoldersCount - 1) {
-         SINFO("\"%s\", ", cConfig.sourceFolders[i]);
-    }else{
-        SINFO("\"%s\"", cConfig.sourceFolders[i]);
-
+      SINFO("\"%s\", ", cConfig.sourceFolders[i]);
+    } else {
+      SINFO("\"%s\"", cConfig.sourceFolders[i]);
     }
   }
   printf("\n");
@@ -203,7 +201,23 @@ int main(int argc, char *argv[]) {
 
   if (!res) {
     SSUCCESS("Compilation was successful! All done now :3\n");
+    SINFO("Generating compile commands...");
 
+    char *ccJson =
+        ez_generator_compile_commands(&cConfig);
+    FILE *jsonPtr = fopen("compile_commands.json", "w");
+    if (!jsonPtr) {
+      SERROR("Couldn't open compile_commands.json");
+      return 0;
+    }
+
+    size_t jsonSize = strlen(ccJson);
+
+    fputs(ccJson, jsonPtr);
+
+    fclose(jsonPtr);
+
+    SSUCCESS("Generated compile_commands.json!");
 
     return res;
 

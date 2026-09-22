@@ -16,6 +16,8 @@ typedef struct ez_DirItem {
   char *name;
 } ez_DirItem;
 
+char *ez_dir_get_working_directory();
+
 ez_DirCount ez_dir_count_items(const char *dirName);
 // needs pTotalDirCount to be initialized to {0}
 void ez_dir_count_items_recursive(const char *dirName,
