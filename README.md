@@ -4,6 +4,7 @@ experimental build sytem for C, built in C, and bootstrapped in C.
 builds with [ez](https://github.com/byie0/ez)
 only works on Windows, soon will work on linux too :D
 
+proudly **NOT vibecoded!**
 # Dependencies
 None!
 
