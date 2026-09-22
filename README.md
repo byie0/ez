@@ -1,6 +1,7 @@
 
 # ez
 experimental build sytem for C, built in C, and bootstrapped in C. around 1k LOC currently (sep 22, 2026)
+
 builds with [ez](https://github.com/byie0/ez)
 only works on Windows, soon will work on linux too :D
 
