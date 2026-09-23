@@ -43,4 +43,4 @@ either run the executable directly or add it to PATH. call `ez` from the command
 
 ## Building
 1. git clone this repo
-2. simply use your favorite C compiler! if you already have gcc installed: "`gcc src\error\state.c src\generator.c src\io\file.c src\io\windows11.c src\main.c src\tests.c -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -o build/ez`"
+2. simply use your favorite C compiler! if you already have gcc installed: "`gcc src/error/state.c src/generator.c src/io/file.c src/io/windows11.c src/main.c src/tests.c src/io/linux.c -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -o build/ez`"

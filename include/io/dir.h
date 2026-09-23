@@ -29,7 +29,7 @@ void ez_dir_get_items(const char *dirName, ez_DirItem **ppItems);
 // pItems gets allocated BY the function, user can just define it.
 // returns the item count
 ez_DirCount ez_dir_get_items_recursive(const char *dirName,
-                                       ez_DirItem **pItems);
+                                       ez_DirItem **ppItems);
 
 int ez_dir_item_exists(const char *dirName);
 

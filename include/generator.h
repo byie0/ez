@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-
+#include <stddef.h>
 // compiler
 #define EZ_COMPILATION_CONFIG_COMPILER_MAX_NAME_LEN 20
 

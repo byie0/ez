@@ -4,4 +4,4 @@ gcc src/main.c src/io/windows11.c src/io/linux.c src/error/state.c src/tests.c s
 define "Windows11" for Windows11 compilation
 define "RUN_TESTS" for testcase execution
 
-./build/b.exe --include include --source-dir src --d LOGERROR --d DEBUG --d LOGTRACE --d LOGINFO --d LOGWARN --d LOGCOLORED --d LOGSUCCESS --d test2 --exclude-file src\io\linux.c --o build/a.exe
+./build/b.exe --include include --source-dir src --d LOGERROR --d DEBUG --d LOGTRACE --d LOGINFO --d LOGWARN --d LOGCOLORED --d LOGSUCCESS  --o build/a.exe

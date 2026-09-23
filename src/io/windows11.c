@@ -1,7 +1,8 @@
+
+#ifdef Windows11
 #include <stdatomic.h>
 #include <stdio.h>
 #include <tchar.h>
-// #ifndef Windows11
 #include "error/logs.h"
 #include "error/state.h"
 
@@ -415,4 +416,4 @@ int ez_spawn_child(const char *command) {
   return (int)exit_code;
 };
 
-// #endif
+#endif

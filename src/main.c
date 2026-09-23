@@ -203,8 +203,7 @@ int main(int argc, char *argv[]) {
     SSUCCESS("Compilation was successful! All done now :3\n");
     SINFO("Generating compile commands...");
 
-    char *ccJson =
-        ez_generator_compile_commands(&cConfig);
+    char *ccJson = ez_generator_compile_commands(&cConfig);
     FILE *jsonPtr = fopen("compile_commands.json", "w");
     if (!jsonPtr) {
       SERROR("Couldn't open compile_commands.json");
