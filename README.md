@@ -4,7 +4,7 @@ experimental build sytem for C, built in C, and bootstrapped in C. around 1k LOC
 
 builds with gcc manually
 
-only works on Windows, soon will work on linux too :D
+support for windows and linux :D
 
 proudly **NOT vibecoded!**
 # Dependencies
@@ -43,4 +43,8 @@ either run the executable directly or add it to PATH. call `ez` from the command
 
 ## Building
 1. git clone this repo
-2. simply use your favorite C compiler! if you already have gcc installed: "`gcc src/error/state.c src/generator.c src/io/file.c src/io/windows11.c src/main.c src/tests.c src/io/linux.c -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -o build/ez`"
+2. simply use your favorite C compiler:
+
+gcc on linux: "`gcc src/error/state.c src/generator.c src/io/file.c src/io/windows11.c src/main.c src/tests.c src/io/linux.c -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -DLinux -O3 -o ez`"
+
+gcc on windows: "`gcc src/error/state.c src/generator.c src/io/file.c src/io/windows11.c src/main.c src/tests.c src/io/linux.c -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLOGDEBUG -DWindows11 -O3 -o ez`"

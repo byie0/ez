@@ -1,7 +1,8 @@
 gcc src/main.c src/io/windows11.c src/io/linux.c src/error/state.c src/tests.c src/io/file.c -Iinclude -DWindows11 -o build/ez
 // requires error/state.c to exist
 
-define "Windows11" for Windows11 compilation
+define "Windows11" for Windows compilation
+define "Linux" for Linux compilation
 define "RUN_TESTS" for testcase execution
 
 ./build/b.exe --include include --source-dir src --d LOGERROR --d DEBUG --d LOGTRACE --d LOGINFO --d LOGWARN --d LOGCOLORED --d LOGSUCCESS  --o build/a.exe

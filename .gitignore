@@ -1,2 +1,6 @@
 compile_commands.json
 example-clangd.json
+/build/*
+build/
+/build
+/build/
