@@ -16,11 +16,6 @@
   },
   {
     "directory": "/home/byie/ez",
-    "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLinux -c src/io/windows11.c",
-    "file": "src/io/windows11.c"
-  },
-  {
-    "directory": "/home/byie/ez",
     "command": "gcc -Iinclude -DLOGERROR -DDEBUG -DLOGTRACE -DLOGINFO -DLOGWARN -DLOGCOLORED -DLOGSUCCESS -DLinux -c src/io/linux.c",
     "file": "src/io/linux.c"
   },

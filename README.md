@@ -10,6 +10,16 @@ proudly **NOT vibecoded!**
 # Dependencies
 None!
 
+# Example
+
+to compile ez using ez, the following command can be run for linux;
+`ez --include include --source-dir src --d LOGERROR --d DEBUG --d LOGTRACE --d LOGINFO --d LOGWARN --d LOGCOLORED
+ --d LOGSUCCESS --d Linux --exclude-file src/io/windows11.c --o ez2`
+
+in this example we define our source dir as `/src/` and our include directory as `/include/`. We also define multiple logging levels with the `--d` flag. Lastly, the `src/io/windows11.c` file is excluded through `--exclude-file` (even though header guards prevent conflicts anyways).
+
+this outputs a file called `ez2`.
+
 ## Current Features
 - Recursive Source Discovery
 	- Traverses source directories through the operating system's native API
