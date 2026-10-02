@@ -29,9 +29,8 @@ int main(int argc, char *argv[]) {
     SINFO("No arguments provided, looking for \"ezConfig.txt\"");
     char ezConfigString[999];
     long bytes = ez_file_to_string("ezConfig.txt", ezConfigString);
-    
 
-    SINFO("Using the following configuration: %s", ezConfigString);
+    
 
     argcFiltered = ez_file_config_to_argv(ezConfigString, &argsFiltered);
     SINFO("Config argc: %d", argcFiltered);
@@ -135,9 +134,9 @@ int main(int argc, char *argv[]) {
                                      [strlen(excludedFile)] = '\0';
           cConfig.excludedSourceFileCount++;
 
-          SINFO("Excluding file: \"%s\"\n", excludedFile);
+          SINFO("Excluding file: \"%s\"", excludedFile);
         } else {
-          SWARN("Excluded file \"%s\" may not exist.\n", excludedFile);
+          SWARN("Excluded file \"%s\" may not exist.", excludedFile);
         };
       }
 
@@ -163,7 +162,7 @@ int main(int argc, char *argv[]) {
 
         strcpy(cConfig.output, outputFileName);
         cConfig.output[strlen(argsFiltered[i + 1])] = '\0';
-        SINFO("Writing to: \"%s\"\n", cConfig.output);
+        SINFO("Writing to: \"%s\"", cConfig.output);
       } else {
         // bruh
       }
@@ -215,7 +214,11 @@ int main(int argc, char *argv[]) {
   printf("\n");
 
   char *cCommand = ez_generator_from_compile_config(&cConfig);
-  SINFO("Running: \"%s\"\n", cCommand);
+  SINFO("Running: \"%s\"", cCommand);
+
+  SINFO("Command length: %zu", strlen(cCommand));
+
+ 
 
   int res = ez_spawn_child(cCommand);
 
@@ -241,7 +244,7 @@ int main(int argc, char *argv[]) {
     return res;
 
   } else {
-    SERROR("Unexpected exit code: %d\n", res);
+    SERROR("Unexpected exit code: %d", res);
     return res;
   }
   return 0;

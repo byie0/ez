@@ -1,10 +1,10 @@
 
 #ifdef Windows11
+#include "error/logs.h"
+#include "error/state.h"
 #include <stdatomic.h>
 #include <stdio.h>
 #include <tchar.h>
-#include "error/logs.h"
-#include "error/state.h"
 
 #include "io/dir.h"
 #include <direct.h>
@@ -378,8 +378,6 @@ int ez_spawn_child(const char *command) {
 
   // CreateProcess may modify this buffer,
   // so it must be writable.
-  // printf("1\n");
-
   char *cmd = strdup(command);
 
   // printf("2\n");
@@ -396,11 +394,10 @@ int ez_spawn_child(const char *command) {
                            NULL,  // environment
                            NULL,  // working directory
                            &si, &pi);
-
   free(cmd);
 
   if (!ok) {
-    fprintf(stderr, "CreateProcess failed: %lu\n", GetLastError());
+    SERROR("CreateProcess failed: %lu\n", GetLastError());
     return -1;
   }
 

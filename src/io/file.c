@@ -21,8 +21,8 @@ long ez_file_to_string(const char *path, char *pDestination) {
   for (long i = 0; i < byteCount; i++) {
     // printf("%02X ", (unsigned char)pDestination[i]);
   }
-  fread(pDestination, sizeof(char), byteCount, fptr);
-  pDestination[byteCount] = '\0';
+  size_t got = fread(pDestination, sizeof(char), byteCount, fptr);
+  pDestination[got] = '\0';
 
   fclose(fptr);
   return byteCount;

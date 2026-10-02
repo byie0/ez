@@ -18,14 +18,14 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
       if (strcmp(cConfig->excludedSourceFiles[i], cConfig->sourceFiles[j]) ==
           0) {
         SINFO("Detected file: \"%s\" to be excluded. Removing from "
-              "compilation...\n",
+              "compilation...",
               cConfig->excludedSourceFiles[i]);
         cConfig->sourceFiles[j][0] = '\0';
         excludedSourceFilesVerified++;
       }
     }
   }
-  SINFO("%llu source file(s) have been excluded.\n",
+  SINFO("%llu source file(s) have been excluded.",
         excludedSourceFilesVerified);
 
   size_t excludedIndicesPos = 0;
@@ -41,28 +41,28 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
     }
   }
 
-  SINFO("Using compiler: %s\n", cConfig->compiler);
+  SINFO("Using compiler: %s", cConfig->compiler);
 
   size_t includeCharacterCount = 0;
   for (size_t i = 0; i < cConfig->includeCount; i++) {
     includeCharacterCount += strlen(cConfig->includeDirectories[i]);
   }
 
-  SDEBUG("Counted: %llu characters in the include directory names\n",
+  SDEBUG("Counted: %llu characters in the include directory names",
          includeCharacterCount);
 
   size_t sourceCharacterCount = 0;
   for (size_t i = 0; i < cConfig->sourceFileCount; i++) {
     sourceCharacterCount += strlen(cConfig->sourceFiles[i]);
   }
-  SDEBUG("Counted: %llu characters in the source file names\n",
+  SDEBUG("Counted: %llu characters in the source file names",
          sourceCharacterCount);
 
   size_t defineCharacterCount = 0;
   for (size_t i = 0; i < cConfig->definesCount; i++) {
     defineCharacterCount += strlen(cConfig->defines[i]);
   }
-  SDEBUG("Counted: %llu characters in the define names\n",
+  SDEBUG("Counted: %llu characters in the define names",
          defineCharacterCount);
 
   // assuming gcc for now
@@ -90,8 +90,8 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
       (cConfig->sourceFileCount - excludedSourceFilesVerified) +
       cConfig->definesCount;
 
-  SDEBUG("totalCharCount: %llu\n", totalCharCount);
-  char *compileCommandBuffer = malloc(totalCharCount);
+  SDEBUG("totalCharCount: %llu", totalCharCount);
+  char *compileCommandBuffer = malloc(totalCharCount + 1);
   size_t bufferPos = 0;
 
   strcpy(compileCommandBuffer, gccCommand);
@@ -141,7 +141,7 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   compileCommandBuffer[bufferPos] = '\0'; // and we are done!
   bufferPos++;
 
-  SDEBUG("Generated compile command (%llu chars long): %s\n",
+  SDEBUG("Generated compile command (%llu chars long): %s",
          strlen(compileCommandBuffer), compileCommandBuffer);
 
   return compileCommandBuffer;
