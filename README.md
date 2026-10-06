@@ -1,6 +1,6 @@
 
 # ez
-experimental build sytem for C, built in C, and bootstrapped in C. around 1k LOC currently (sep 22, 2026)
+experimental build sytem for C, built in C, and bootstrapped in C. around 1.5k LOC currently (oct 6, 2026)
 
 builds with gcc manually
 
@@ -47,7 +47,7 @@ either run the executable directly or add it to PATH. call `ez` from the command
 
 
 ## Future Plans
-1. Add support for a configuration file to remove the need for flags every run and configuration (like color-coded logging)
+1. Incremental building
 2. Implement explicit error handling and fix memory leaks here and there...
 
 
