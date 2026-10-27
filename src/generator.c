@@ -1,6 +1,6 @@
 #include "generator.h"
-#include "io/dir.h"
 #include "error/logs.h"
+#include "io/dir.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +25,7 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
       }
     }
   }
-  SINFO("%llu source file(s) have been excluded.",
-        excludedSourceFilesVerified);
+  SINFO("%llu source file(s) have been excluded.", excludedSourceFilesVerified);
 
   size_t excludedIndicesPos = 0;
   size_t excludedIndices[excludedSourceFilesVerified];
@@ -62,11 +61,10 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   for (size_t i = 0; i < cConfig->definesCount; i++) {
     defineCharacterCount += strlen(cConfig->defines[i]);
   }
-  SDEBUG("Counted: %llu characters in the define names",
-         defineCharacterCount);
+  SDEBUG("Counted: %llu characters in the define names", defineCharacterCount);
 
   // assuming gcc for now
-  char gccCommand[] = "gcc";
+  char *compiler = cConfig->compiler;
   char gccIncludeFlag[] = "-I";
   char gccDefineFlag[] = "-D";
 
@@ -76,7 +74,7 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
       sourceCharacterCount + defineCharacterCount + includeCharacterCount +
       strlen(cConfig->output)
       // constant
-      + strlen(gccCommand) +
+      + strlen(compiler) +
       strlen(gccOutputFlag)
 
       // prefixes (variable length)
@@ -94,8 +92,8 @@ char *ez_generator_from_compile_config(ez_CompilationConfig *cConfig) {
   char *compileCommandBuffer = malloc(totalCharCount + 1);
   size_t bufferPos = 0;
 
-  strcpy(compileCommandBuffer, gccCommand);
-  bufferPos += strlen(gccCommand);
+  strcpy(compileCommandBuffer, compiler);
+  bufferPos += strlen(compiler);
   compileCommandBuffer[bufferPos] = ' ';
   bufferPos++;
 
@@ -176,11 +174,13 @@ char *ez_generator_compile_commands(ez_CompilationConfig *cConfig) {
   size_t commonFlagsLen = strlen(compiler) + 1; // "compiler "
 
   for (size_t i = 0; i < cConfig->includeCount; i++) {
-    commonFlagsLen +=
-        strlen(gccIncludeFlag) + strlen(cConfig->includeDirectories[i]) + 1; // "-I" + dir + " "
+    commonFlagsLen += strlen(gccIncludeFlag) +
+                      strlen(cConfig->includeDirectories[i]) +
+                      1; // "-I" + dir + " "
   }
   for (size_t i = 0; i < cConfig->definesCount; i++) {
-    commonFlagsLen += strlen(gccDefineFlag) + strlen(cConfig->defines[i]) + 1; // "-D" + def + " "
+    commonFlagsLen += strlen(gccDefineFlag) + strlen(cConfig->defines[i]) +
+                      1; // "-D" + def + " "
   }
 
   char *commonFlags = malloc(commonFlagsLen + 1);
@@ -216,7 +216,8 @@ char *ez_generator_compile_commands(ez_CompilationConfig *cConfig) {
                  working_dir, commonFlags, cConfig->sourceFiles[i],
                  cConfig->sourceFiles[i]);
 
-    total_size += entry_len; //very handy trick! i did learn this from gemini, so credit where its due
+    total_size += entry_len; // very handy trick! i did learn this from gemini,
+                             // so credit where its due
     // man this wouldve made the generator_from_compile_config so much simpler
   }
 

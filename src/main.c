@@ -1,3 +1,4 @@
+#include "extra.h"
 #include <stdlib.h>
 #ifdef RUN_TESTS
 #include "tests.h"
@@ -20,8 +21,8 @@ int main(int argc, char *argv[]) {
   char logo[999] = {};
   ez_file_to_string("assets/logo.txt", logo);
   printf("%s", logo);
-
-  ez_CompilationConfig cConfig = {.compiler = "gcc"};
+  int floppyFill = 0;
+  ez_CompilationConfig cConfig = {};
   char **argsFiltered = argv;
   int argcFiltered = argc;
 
@@ -29,8 +30,6 @@ int main(int argc, char *argv[]) {
     SINFO("No arguments provided, looking for \"ezConfig.txt\"");
     char ezConfigString[999];
     long bytes = ez_file_to_string("ezConfig.txt", ezConfigString);
-
-    
 
     argcFiltered = ez_file_config_to_argv(ezConfigString, &argsFiltered);
     SINFO("Config argc: %d", argcFiltered);
@@ -42,130 +41,131 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < argcFiltered; i++) {
     // printf("Argument %d: %s\n", i, argsFiltered[i])kj;
     if (i != argcFiltered - 1) {
-      // SDEBUG("argsFiltered[i]: %s\n argsFiltered[i+1]: %s\n",
-      // argsFiltered[i],
-      //        argsFiltered[i + 1]);
+      SDEBUG("argsFiltered[%d]: %s\n argsFiltered[i+1]: %s\n", i,
+             argsFiltered[i], argsFiltered[i + 1]);
+    }
+    // --------------------------------------------- Include directory
+    if (strcmp("--include", argsFiltered[i]) == 0) {
+      char requestedInclude[strlen(argsFiltered[i + 1])];
+      strcpy(requestedInclude, argsFiltered[i + 1]);
+      if (ez_dir_item_exists_strip(requestedInclude)) {
+        strcpy(cConfig.includeDirectories[cConfig.includeCount],
+               requestedInclude);
 
-      // --------------------------------------------- Include directory
-      if (strcmp("--include", argsFiltered[i]) == 0) {
-        char requestedInclude[strlen(argsFiltered[i + 1])];
-        strcpy(requestedInclude, argsFiltered[i + 1]);
-        if (ez_dir_item_exists_strip(requestedInclude)) {
-          strcpy(cConfig.includeDirectories[cConfig.includeCount],
-                 requestedInclude);
+        cConfig.includeDirectories[cConfig.includeCount]
+                                  [strlen(requestedInclude)] = '\0';
 
-          cConfig.includeDirectories[cConfig.includeCount]
-                                    [strlen(requestedInclude)] = '\0';
+        cConfig.includeCount++;
 
-          cConfig.includeCount++;
-
-        } else {
-          SWARN("Requested include directory: \"%s\" does not exist.",
-                requestedInclude);
-        };
-      }
-      // --------------------------------------------- Sources
-      //
-      else if (strcmp("--source-dir", argsFiltered[i]) == 0) {
-        char requestedDir[strlen(argsFiltered[i + 1])];
-        strcpy(requestedDir, argsFiltered[i + 1]);
-        if (ez_dir_item_exists_strip(requestedDir)) { // should check whether it
-                                                      // is a file or a dir.
-          // so the source does exist. Now we recursively
-          ez_DirItem *dirItemsRecursive = NULL;
-          ez_DirCount dirCountRecursive =
-              ez_dir_get_items_recursive(requestedDir, &dirItemsRecursive);
-
-          // printf("Found %d total items in this source directory.\n",
-          //        dirCountRecursive.items);
-          for (int item = 0; item < dirCountRecursive.items; item++) {
-            char itemName[strlen(dirItemsRecursive[item].name) +
-                          1]; // i mustnt forget the null terminator!
-            strcpy(itemName, dirItemsRecursive[item].name);
-            itemName[strlen(dirItemsRecursive[item].name)] = '\0';
-            if (dirItemsRecursive[item].type == EZ_DIR_ITEM_TYPE_FILE) {
-              // printf("Found source file: %s\n", itemName);
-              strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], itemName);
-              cConfig.sourceFiles[cConfig.sourceFileCount][strlen(itemName)] =
-                  '\0';
-              cConfig.sourceFileCount++;
-
-            } else if (dirItemsRecursive[item].type ==
-                       EZ_DIR_ITEM_TYPE_SUBDIRECTORY) {
-              // printf("Found subdirectory: %s\n", itemName);
-              strcpy(cConfig.sourceFolders[cConfig.sourceFoldersCount],
-                     itemName);
-              cConfig.sourceFolders[cConfig.sourceFileCount][strlen(itemName)] =
-                  '\0';
-              cConfig.sourceFoldersCount++;
-            }
-          }
-        } else {
-          SWARN("Requested source directory: \"%s\" does not exist.",
-                requestedDir);
-        };
-      } else if (strcmp("--source-file", argsFiltered[i]) == 0) {
-        char requestedSource[strlen(argsFiltered[i + 1])];
-        strcpy(requestedSource, argsFiltered[i + 1]);
-        if (ez_dir_item_exists_strip(
-                requestedSource)) { // should check whether it is a file or a
-                                    // dir.
-          strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], requestedSource);
-          cConfig
-              .sourceFiles[cConfig.sourceFileCount][strlen(requestedSource)] =
-              '\0';
-          cConfig.sourceFileCount++;
-        } else {
-          SWARN("Requested source file: \"%s\" does not exist.",
-                requestedSource);
-        };
-      }
-      // -------------------------------------------- Exclude
-      // maybe add --exclude-files [file1.c, file2.c, etc.]
-      //
-      // exclude file
-      else if (strcmp("--exclude-file", argsFiltered[i]) == 0) {
-        char excludedFile[strlen(argsFiltered[i + 1])];
-        strcpy(excludedFile, argsFiltered[i + 1]);
-        if (ez_dir_item_exists_strip(excludedFile)) {
-          strcpy(cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount],
-                 excludedFile);
-          cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount]
-                                     [strlen(excludedFile)] = '\0';
-          cConfig.excludedSourceFileCount++;
-
-          SINFO("Excluding file: \"%s\"", excludedFile);
-        } else {
-          SWARN("Excluded file \"%s\" may not exist.", excludedFile);
-        };
-      }
-
-      // -------------------------------------------- Defines
-      //
-      //
-      else if (strcmp("--define", argsFiltered[i]) == 0 ||
-               strcmp("--d", argsFiltered[i]) == 0) {
-        char toDefine[strlen(argsFiltered[i + 1]) + 1];
-        strcpy(toDefine, argsFiltered[i + 1]);
-        toDefine[strlen(argsFiltered[i + 1])] = '\0';
-        SINFO("Defining: \"%s\"", toDefine);
-        strcpy(cConfig.defines[cConfig.definesCount], toDefine);
-        cConfig.definesCount++;
-      } else if (strcmp("--out", argsFiltered[i]) == 0 ||
-                 strcmp("--o", argsFiltered[i]) == 0) {
-        // printf("OUTPUT\n");
-
-        char outputFileName[strlen(argsFiltered[i + 1])];
-        strcpy(outputFileName, argsFiltered[i + 1]);
-        // printf("outputFileName: %s\n", outputFileName);
-        // printf("Before copying: \"%s\"\n", cConfig.output);
-
-        strcpy(cConfig.output, outputFileName);
-        cConfig.output[strlen(argsFiltered[i + 1])] = '\0';
-        SINFO("Writing to: \"%s\"", cConfig.output);
       } else {
-        // bruh
-      }
+        SWARN("Requested include directory: \"%s\" does not exist.",
+              requestedInclude);
+      };
+    }
+    // --------------------------------------------- Sources
+    //
+    else if (strcmp("--source-dir", argsFiltered[i]) == 0) {
+      char requestedDir[strlen(argsFiltered[i + 1])];
+      strcpy(requestedDir, argsFiltered[i + 1]);
+      if (ez_dir_item_exists_strip(requestedDir)) { // should check whether it
+                                                    // is a file or a dir.
+        // so the source does exist. Now we recursively
+        ez_DirItem *dirItemsRecursive = NULL;
+        ez_DirCount dirCountRecursive =
+            ez_dir_get_items_recursive(requestedDir, &dirItemsRecursive);
+
+        // printf("Found %d total items in this source directory.\n",
+        //        dirCountRecursive.items);
+        for (int item = 0; item < dirCountRecursive.items; item++) {
+          char itemName[strlen(dirItemsRecursive[item].name) +
+                        1]; // i mustnt forget the null terminator!
+          strcpy(itemName, dirItemsRecursive[item].name);
+          itemName[strlen(dirItemsRecursive[item].name)] = '\0';
+          if (dirItemsRecursive[item].type == EZ_DIR_ITEM_TYPE_FILE) {
+            // printf("Found source file: %s\n", itemName);
+            strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], itemName);
+            cConfig.sourceFiles[cConfig.sourceFileCount][strlen(itemName)] =
+                '\0';
+            cConfig.sourceFileCount++;
+
+          } else if (dirItemsRecursive[item].type ==
+                     EZ_DIR_ITEM_TYPE_SUBDIRECTORY) {
+            // printf("Found subdirectory: %s\n", itemName);
+            strcpy(cConfig.sourceFolders[cConfig.sourceFoldersCount], itemName);
+            cConfig.sourceFolders[cConfig.sourceFileCount][strlen(itemName)] =
+                '\0';
+            cConfig.sourceFoldersCount++;
+          }
+        }
+      } else {
+        SWARN("Requested source directory: \"%s\" does not exist.",
+              requestedDir);
+      };
+    } else if (strcmp("--source-file", argsFiltered[i]) == 0) {
+      char requestedSource[strlen(argsFiltered[i + 1])];
+      strcpy(requestedSource, argsFiltered[i + 1]);
+      if (ez_dir_item_exists_strip(requestedSource)) { // should check whether
+                                                       // it is a file or a dir.
+        strcpy(cConfig.sourceFiles[cConfig.sourceFileCount], requestedSource);
+        cConfig.sourceFiles[cConfig.sourceFileCount][strlen(requestedSource)] =
+            '\0';
+        cConfig.sourceFileCount++;
+      } else {
+        SWARN("Requested source file: \"%s\" does not exist.", requestedSource);
+      };
+    }
+    // -------------------------------------------- Exclude
+    // maybe add --exclude-files [file1.c, file2.c, etc.]
+    //
+    // exclude file
+    else if (strcmp("--exclude-file", argsFiltered[i]) == 0) {
+      char excludedFile[strlen(argsFiltered[i + 1])];
+      strcpy(excludedFile, argsFiltered[i + 1]);
+      if (ez_dir_item_exists_strip(excludedFile)) {
+        strcpy(cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount],
+               excludedFile);
+        cConfig.excludedSourceFiles[cConfig.excludedSourceFileCount]
+                                   [strlen(excludedFile)] = '\0';
+        cConfig.excludedSourceFileCount++;
+
+        SINFO("Excluding file: \"%s\"", excludedFile);
+      } else {
+        SWARN("Excluded file \"%s\" may not exist.", excludedFile);
+      };
+    }
+
+    // -------------------------------------------- Defines
+    //
+    //
+    else if (strcmp("--define", argsFiltered[i]) == 0 ||
+             strcmp("--d", argsFiltered[i]) == 0) {
+      char toDefine[strlen(argsFiltered[i + 1]) + 1];
+      strcpy(toDefine, argsFiltered[i + 1]);
+      toDefine[strlen(argsFiltered[i + 1])] = '\0';
+      SINFO("Defining: \"%s\"", toDefine);
+      strcpy(cConfig.defines[cConfig.definesCount], toDefine);
+      cConfig.definesCount++;
+    } else if (strcmp("--out", argsFiltered[i]) == 0 ||
+               strcmp("--o", argsFiltered[i]) == 0) {
+      // printf("OUTPUT\n");
+
+      char outputFileName[strlen(argsFiltered[i + 1])];
+      strcpy(outputFileName, argsFiltered[i + 1]);
+      // printf("outputFileName: %s\n", outputFileName);
+      // printf("Before copying: \"%s\"\n", cConfig.output);
+
+      strcpy(cConfig.output, outputFileName);
+      cConfig.output[strlen(argsFiltered[i + 1])] = '\0';
+      SINFO("Writing to: \"%s\"", cConfig.output);
+    } else if (strcmp("--c", argsFiltered[i]) == 0) {
+      strcpy(cConfig.compiler, argsFiltered[i + 1]);
+    } else if (strcmp("--floppy", argsFiltered[i]) == 0) {
+      SINFO("Floppy fill enabled");
+      floppyFill = 1;
+    }
+
+    else {
+      // bruh
     }
   }
 
@@ -218,8 +218,6 @@ int main(int argc, char *argv[]) {
 
   SINFO("Command length: %zu", strlen(cCommand));
 
- 
-
   int res = ez_spawn_child(cCommand);
 
   if (!res) {
@@ -240,6 +238,23 @@ int main(int argc, char *argv[]) {
     fclose(jsonPtr);
 
     SSUCCESS("Generated compile_commands.json!");
+
+    if (floppyFill) {
+      char floppyName[EZ_COMPILATION_CONFIG_OUTPUT_FILE_MAX_NAME_LEN];
+      for (int c = 0; c < strlen(cConfig.output); c++) {
+        if (cConfig.output[c] == '.') {
+          floppyName[c] = '\0';
+          break;
+        } else {
+          floppyName[c] = cConfig.output[c];
+        }
+      }
+      int filled = strlen(floppyName);
+      strcat(floppyName, ".img");
+      floppyName[filled + 4] = '\0'; 
+      SINFO("Writing floppy to: %s", floppyName);
+      extra_floppy(cConfig.output, floppyName);
+    }
 
     return res;
 

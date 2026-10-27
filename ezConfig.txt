@@ -1,0 +1,1 @@
+ --source-dir src --include include --d LOGWARN --d LOGINFO --d LOGERROR --d LOGSUCCESS --d LOGCOLORED --d LOGDEBUG --o build\ez3 --d Windows11 --c gcc --floppy
